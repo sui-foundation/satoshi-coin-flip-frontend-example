@@ -1,8 +1,8 @@
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
-import { Box, Callout, Container, Flex, Heading } from "@radix-ui/themes";
-import { PlayerSesh } from "./containers/PlayerSesh";
+import { Box, Callout, Container, Flex, Grid, Heading } from "@radix-ui/themes";
+import { PlayerSesh } from "./containers/Player/PlayerSesh";
 import { HouseSesh } from "./containers/House/HouseSesh";
-import { PACKAGE_ID } from "./constants";
+import { HOUSECAP_ID, PACKAGE_ID } from "./constants";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 
 function App() {
@@ -30,6 +30,10 @@ function App() {
         <Heading size="4" m={"2"}>
           Package ID: {PACKAGE_ID}
         </Heading>
+        <Heading size="4" m={"2"}>
+          HouseCap ID: {HOUSECAP_ID}
+        </Heading>
+
         <Callout.Root mb="2">
           <Callout.Icon>
             <InfoCircledIcon />
@@ -39,15 +43,16 @@ function App() {
             package
           </Callout.Text>
         </Callout.Root>
+
         {!account ? (
           <Heading size="4" align="center">
             Please connect wallet to continue
           </Heading>
         ) : (
-          <Flex>
+          <Grid columns="2" gap={"3"} width={"auto"}>
             <PlayerSesh />
             <HouseSesh />
-          </Flex>
+          </Grid>
         )}
       </Container>
     </>

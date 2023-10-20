@@ -18,7 +18,8 @@
     "@radix-ui/themes": "^2.0.0",
     "@tanstack/react-query": "^4.29.25",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-toastify": "^9.1.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

@@ -1,28 +1,30 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import {
   Box,
   Button,
-  Card,
   Container,
   Text,
   Heading,
   TextFieldInput,
-  Blockquote,
   Callout,
 } from "@radix-ui/themes";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { MIST_PER_SUI } from "@mysten/sui.js/utils";
 import { bcs } from "@mysten/sui.js/bcs";
 import * as curveUtils from "@noble/curves/abstract/utils";
+import { toast } from "react-toastify";
 
-import { PACKAGE_ID } from "../../constants";
+import { HOUSECAP_ID, PACKAGE_ID } from "../../constants";
 import { useSignAndExecuteTransactionBlock } from "@mysten/dapp-kit";
+import { SuiTransactionBlockResponse } from "@mysten/sui.js/client";
+import { HouseKeypairContext } from "./HouseKeypairContext";
 
 export function HouseInitialize() {
   const [houseStake, setHouseStake] = useState(0);
-  const [housePubHex, setHousePubHex] = useState("");
-  const [houseCapId, setHouseCapId] = useState("");
+  const [houseDataId, setHouseDataId] = useState("");
+
+  const [, housePubHex] = useContext(HouseKeypairContext);
 
   // We have two options for signing and execute tx block:
   // 1. `useSignAndExecuteTransactionBlock` is a React hook from `@mysten/dapp-kit`
@@ -63,7 +65,7 @@ export function HouseInitialize() {
           txb.moveCall({
             target: `${PACKAGE_ID}::house_data::initialize_house_data`,
             arguments: [
-              txb.object(houseCapId),
+              txb.object(HOUSECAP_ID),
               houseStakeCoin,
               // This argument is not an on-chain object, hence, we must serialize it using `bcs`
               // https://sui-typescript-docs.vercel.app/typescript/transaction-building/basics#pure-values
@@ -78,52 +80,42 @@ export function HouseInitialize() {
           execInitializeHouse(
             {
               transactionBlock: txb,
-              // There are 2 options for this
-              // - WaitForLocalExecution (default): transaction is executed but finality not
-              // - WaitForEffectsCert: wait for transaction block finality
-              requestType: "WaitForEffectsCert",
+              options: {
+                showObjectChanges: true,
+              },
             },
             {
               onError: (err) => {
-                alert(err.message);
+                toast.error(err.message);
               },
-              onSuccess: (result) => {
-                alert(`Digest: ${result.digest}`);
+              onSuccess: (result: SuiTransactionBlockResponse) => {
+                let houseDataObjId;
+
+                result.objectChanges?.some((objCh) => {
+                  if (
+                    objCh.type === "created" &&
+                    objCh.objectType === `${PACKAGE_ID}::house_data::HouseData`
+                  ) {
+                    houseDataObjId = objCh.objectId;
+                    return true;
+                  }
+                });
+
+                setHouseDataId(houseDataObjId!);
+
+                toast.success(`Digest: ${result.digest}`);
               },
             },
           );
         }}
       >
         <Box mb="3">
-          <Text>HouseCap ID</Text>
-          <TextFieldInput
-            required
-            placeholder="HouseCap ID"
-            onChange={(e) => {
-              setHouseCapId(e.target.value);
-            }}
-          />
-        </Box>
-
-        <Box mb="3">
           <Text>House Stake</Text>
           <TextFieldInput
             placeholder="House Stake (in SUI)"
-            type="number"
             required
             onChange={(e) => {
-              setHouseStake(e.target.valueAsNumber);
-            }}
-          />
-        </Box>
-
-        <Box mb="3">
-          <Text>House Public Key</Text>
-          <TextFieldInput
-            required
-            placeholder="House Public Key (Hex string without 0x prefix)"
-            onChange={(e) => {
-              setHousePubHex(e.target.value);
+              setHouseStake(Number(e.target.value));
             }}
           />
         </Box>
@@ -131,6 +123,25 @@ export function HouseInitialize() {
         <Button disabled={isLoading} type="submit">
           Initialize
         </Button>
+
+        {houseDataId && (
+          <>
+            <Box mb="2">
+              <Text as="div">HouseData ID: </Text>
+              <Text as="div">{houseDataId}</Text>
+            </Box>
+
+            <Callout.Root mb="2">
+              <Callout.Icon>
+                <InfoCircledIcon />
+              </Callout.Icon>
+              <Callout.Text>
+                You should save HouseData ID somewhere because it will be lost
+                when refresh the page
+              </Callout.Text>
+            </Callout.Root>
+          </>
+        )}
       </form>
     </Container>
   );
