@@ -24,7 +24,7 @@ export function HouseInitialize() {
   const [houseStake, setHouseStake] = useState(0);
   const [houseDataId, setHouseDataId] = useState("");
 
-  const [, housePubHex] = useContext(HouseKeypairContext);
+  const [, getHousePubHex] = useContext(HouseKeypairContext);
 
   // We have two options for signing and execute tx block:
   // 1. `useSignAndExecuteTransactionBlock` is a React hook from `@mysten/dapp-kit`
@@ -72,7 +72,7 @@ export function HouseInitialize() {
               txb.pure(
                 bcs
                   .vector(bcs.U8)
-                  .serialize(curveUtils.hexToBytes(housePubHex)),
+                  .serialize(curveUtils.hexToBytes(getHousePubHex())),
               ),
             ],
           });

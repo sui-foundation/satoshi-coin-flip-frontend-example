@@ -37,6 +37,8 @@ export function HouseFinishGame() {
 
         toast.info(`NewGame started ID: ${game_id}`);
 
+        console.log(housePrivHex);
+
         try {
           const houseSignedInput = bls.sign(
             new Uint8Array(vrf_input),
@@ -75,7 +77,7 @@ export function HouseFinishGame() {
     return () => {
       (async () => (await unsub)())();
     };
-  }, []);
+  }, [housePrivHex, houseDataId, suiClient]);
 
   return null;
 }

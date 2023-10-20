@@ -4,13 +4,13 @@ import * as curveUtils from "@noble/curves/abstract/utils";
 
 export type HouseKeypairContextVal = [
   string,
-  string,
+  () => string,
   (newPrivKeyHex: string) => void,
 ];
 
 export const HouseKeypairContext = createContext<HouseKeypairContextVal>([
   "",
-  "",
+  () => "",
   () => {},
 ]);
 
@@ -25,9 +25,11 @@ export function HouseKeypairProvider({ children }: HouseKeypairProps) {
     <HouseKeypairContext.Provider
       value={[
         privKeyHex,
-        curveUtils.hexToBytes(privKeyHex).length === 32
-          ? curveUtils.bytesToHex(bls.getPublicKey(privKeyHex))
-          : "",
+        () => {
+          return curveUtils.hexToBytes(privKeyHex).length === 32
+            ? curveUtils.bytesToHex(bls.getPublicKey(privKeyHex))
+            : "";
+        },
         setPrivKeyHex,
       ]}
     >
